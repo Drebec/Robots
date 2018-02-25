@@ -34,7 +34,6 @@ button_delay = 0.2	# set delay for after keypresses
 
 class KeyController():
 
-
 	def __init__(self):
 		pass
 		# # reset the body position because it needs to happen for some reason?
@@ -60,10 +59,6 @@ class KeyController():
 		# c0.setAccel(BODY, 30)
 		# c0.setAccel(FORWARD_BACK, 30)
 		# c0.setAccel(LEFT_RIGHT, 30)
-
-	# Add all widgets to the window
-	def create_widgets(self):
-		pass
 
 	def forward(self, event):
 		self.move(FORWARD_BACK, -DRIVE_STEP)

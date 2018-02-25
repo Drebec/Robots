@@ -1,10 +1,12 @@
 import tkinter as tk
 from key_controller import KeyController
 
-win = tk.Tk()				# Create tk window
+# Create main window
+win = tk.Tk()
 win.title("GUI Controller")
 
-kc = KeyController()		# instantiate keyboard controller
+# Instantiate keyboard controller
+kc = KeyController()
 
 ### BIND BUTTONS ###
 ## MOVEMENT ##
