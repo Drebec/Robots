@@ -25,12 +25,16 @@ MID    = 6000
 MAX    = 9000
 
 # Enumerate settings
-FORWARD 	=  1
-BACKWARD	= -1
-NO_MOVE		=  0
+FORWARD,LEFT 	=  1,1
+BACKWARD,RIGHT	= -1,-1
+NO_MOVE			=  0
 
 # Base settings dictionaries
 motor_D = {"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MID, "left_right_target":MID}
+
+def motor_settings_popup(settings_D):
+	print(str(settings_D))
+	settings_D["left_right"] += 1
 
 class ButtonCommand:
 	ic = 0
@@ -39,9 +43,12 @@ class ButtonCommand:
 	@classmethod
 	def run_motor(self):
 		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
-		can_L[ButtonCommand.ic].bind('<Button-1>', motor_settings_popup)
+		
+		ButtonCommand.cmd_L.append({"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MID, "left_right_target":MID})
+
+		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: motor_settings_popup(settings_D))
+
 		ButtonCommand.ic += 1
-		ButtonCommand.cmd_L.append(motor_D)
 
 
 	@classmethod
