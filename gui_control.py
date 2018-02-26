@@ -20,17 +20,39 @@ instruction_options = {"width":instruction_width, "height":instruction_height, "
 play_pause_options 	= {"width":play_pause_width, "height":play_pause_height}
 
 # Servo positions
-MIN    = 3000
-MID    = 6000
-MAX    = 9000
+MIN, MIN_WAIT 	= 0,0
+MAX, MAX_WAIT	= 3000, 5
+
 
 # Enumerate settings
-FORWARD 	=  1
-BACKWARD	= -1
-NO_MOVE		=  0
+FORWARD, LEFT, UP 		=  1,1,1
+BACKWARD,RIGHT, DOWN	= -1,-1,-1
+NO_MOVE					=  0
 
 # Base settings dictionaries
-motor_D = {"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MID, "left_right_target":MID}
+motor_D = {"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN}
+
+head_D = {"type":"head", "up_down":NO_MOVE, "left_right":NO_MOVE, "up_down_target":MIN, "left_right_target":MIN}
+
+body_D = {"type":"body", "left_right":NO_MOVE, "left_right_target":MIN}
+
+wait_D = {"type":"wait", "delay":MIN_WAIT}
+
+def motor_settings_popup(settings_D):
+	print(str(settings_D))
+	settings_D["left_right"] += 1
+
+def head_settings_popup(settings_D):
+	print(str(settings_D))
+	settings_D["left_right"] += 1
+
+def body_settings_popup(settings_D):
+	print(str(settings_D))
+	settings_D["left_right"] += 1
+
+def wait_settings_popup(settings_D):
+	print(str(settings_D))
+	settings_D["delay"] += 1
 
 class ButtonCommand:
 	ic = 0
@@ -39,24 +61,42 @@ class ButtonCommand:
 	@classmethod
 	def run_motor(self):
 		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
-		can_L[ButtonCommand.ic].bind('<Button-1>', motor_settings_popup)
+
+		ButtonCommand.cmd_L.append({"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN})
+
+		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: motor_settings_popup(settings_D))
+
 		ButtonCommand.ic += 1
-		ButtonCommand.cmd_L.append(motor_D)
 
 
 	@classmethod
 	def run_head(self):
 		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="green")
+
+		ButtonCommand.cmd_L.append({"type":"head", "up_down":NO_MOVE, "left_right":NO_MOVE, "up_down_target":MIN, "left_right_target":MIN})
+
+		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: head_settings_popup(settings_D))
+
 		ButtonCommand.ic += 1
 
 	@classmethod
 	def run_body(self):
 		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="red")
+
+		ButtonCommand.cmd_L.append({"type":"body", "left_right":NO_MOVE, "left_right_target":MIN})
+
+		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: body_settings_popup(settings_D))
+
 		ButtonCommand.ic += 1
 
 	@classmethod
 	def run_wait(self):
 		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="white")
+
+		ButtonCommand.cmd_L.append({"type":"wait", "delay":MIN_WAIT})
+
+		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: wait_settings_popup(settings_D))
+
 		ButtonCommand.ic += 1
 
 ### MAIN WINDOW ###
@@ -88,8 +128,8 @@ head.pack(side="left")
 body = tk.Button(ins_button_frame, button_options, text="Body Instruction", command=ButtonCommand.run_body)
 body.pack(side="left")
 
-pause = tk.Button(ins_button_frame, button_options, text="Pause", command=ButtonCommand.run_wait)
-pause.pack(side="left")
+wait = tk.Button(ins_button_frame, button_options, text="Wait", command=ButtonCommand.run_wait)
+wait.pack(side="left")
 
 ### INSTRUCTION SLOTS ###
 for i in range(8):
