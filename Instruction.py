@@ -1,7 +1,7 @@
 from maestro import Controller
 import time
 
-c0 = Controller()
+# c0 = Controller()
 
 BODY            = 0
 FORWARD_BACK    = 1
@@ -31,7 +31,6 @@ class Motor:
         c0.setTarget(FORWARD_BACK, 6000 + (self.forward_back * self.forward_back_target))
         c0.setTarget(LEFT_RIGHT, 6000 + (self.left_right * self.left_right_target))
         time.sleep(delay)
-
 
 class Body:
     def __init__(self, direction=0, target=0):
