@@ -29,6 +29,9 @@ FORWARD, LEFT, UP 		=  1,1,1
 BACKWARD,RIGHT, DOWN	= -1,-1,-1
 NO_MOVE					=  0
 
+ic = 0
+cmd_L = []
+
 # Base settings dictionaries
 motor_D = {"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN}
 
@@ -54,50 +57,45 @@ def wait_settings_popup(settings_D):
 	print(str(settings_D))
 	settings_D["delay"] += 1
 
-class ButtonCommand:
-	ic = 0
-	cmd_L = []
+def run_motor():
+	global ic, cmd_L
+	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
 
-	@classmethod
-	def run_motor(self):
-		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
+	cmd_L.append({"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN})
 
-		ButtonCommand.cmd_L.append({"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN})
+	can_L[ic].bind('<Button-1>', lambda event, settings_D=cmd_L[ic]: motor_settings_popup(settings_D))
 
-		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: motor_settings_popup(settings_D))
+	ic += 1
 
-		ButtonCommand.ic += 1
+def run_head():
+	global ic, cmd_L
+	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="green")
 
+	cmd_L.append({"type":"head", "up_down":NO_MOVE, "left_right":NO_MOVE, "up_down_target":MIN, "left_right_target":MIN})
 
-	@classmethod
-	def run_head(self):
-		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="green")
+	can_L[ic].bind('<Button-1>', lambda event, settings_D=cmd_L[ic]: head_settings_popup(settings_D))
 
-		ButtonCommand.cmd_L.append({"type":"head", "up_down":NO_MOVE, "left_right":NO_MOVE, "up_down_target":MIN, "left_right_target":MIN})
+	ic += 1
 
-		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: head_settings_popup(settings_D))
+def run_body():
+	global ic, cmd_L
+	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="red")
 
-		ButtonCommand.ic += 1
+	cmd_L.append({"type":"body", "left_right":NO_MOVE, "left_right_target":MIN})
 
-	@classmethod
-	def run_body(self):
-		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="red")
+	can_L[ic].bind('<Button-1>', lambda event, settings_D=cmd_L[ic]: body_settings_popup(settings_D))
 
-		ButtonCommand.cmd_L.append({"type":"body", "left_right":NO_MOVE, "left_right_target":MIN})
+	ic += 1
 
-		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: body_settings_popup(settings_D))
+def run_wait():
+	global ic, cmd_L
+	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="white")
 
-		ButtonCommand.ic += 1
+	cmd_L.append({"type":"wait", "delay":MIN_WAIT})
 
-	@classmethod
-	def run_wait(self):
-		can_L[ButtonCommand.ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="white")
+	can_L[ic].bind('<Button-1>', lambda event, settings_D=cmd_L[ic]: wait_settings_popup(settings_D))
 
-		ButtonCommand.cmd_L.append({"type":"wait", "delay":MIN_WAIT})
-
-		can_L[ButtonCommand.ic].bind('<Button-1>', lambda event, settings_D=ButtonCommand.cmd_L[ButtonCommand.ic]: wait_settings_popup(settings_D))
-
-		ButtonCommand.ic += 1
+	ic += 1
 
 ### MAIN WINDOW ###
 win = tk.Tk()
@@ -119,16 +117,16 @@ play_pause_frame = tk.Frame(master=win)
 play_pause_frame.pack()
 
 ### INSTRUCTION BUTTONS ###
-motor = tk.Button(ins_button_frame, button_options, text="Motor Instruction", command=ButtonCommand.run_motor)
+motor = tk.Button(ins_button_frame, button_options, text="Motor Instruction", command=run_motor)
 motor.pack(side="left")
 
-head = tk.Button(ins_button_frame, button_options, text="Head Instruction", command=ButtonCommand.run_head)
+head = tk.Button(ins_button_frame, button_options, text="Head Instruction", command=run_head)
 head.pack(side="left")
 
-body = tk.Button(ins_button_frame, button_options, text="Body Instruction", command=ButtonCommand.run_body)
+body = tk.Button(ins_button_frame, button_options, text="Body Instruction", command=run_body)
 body.pack(side="left")
 
-wait = tk.Button(ins_button_frame, button_options, text="Wait", command=ButtonCommand.run_wait)
+wait = tk.Button(ins_button_frame, button_options, text="Wait", command=run_wait)
 wait.pack(side="left")
 
 ### INSTRUCTION SLOTS ###
