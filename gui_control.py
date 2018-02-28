@@ -10,8 +10,8 @@ button_pady		= 5
 
 can_L = []
 
-instruction_height 	= 100
-instruction_width 	= 100
+instruction_height 	= 90
+instruction_width 	= 90
 
 play_pause_width	= 100
 play_pause_height	= 75
@@ -43,6 +43,8 @@ body_D = {"type":"body", "left_right":NO_MOVE, "left_right_target":MIN}
 
 wait_D = {"type":"wait", "delay":MIN_WAIT}
 
+thread_kill = False
+
 def wrap(i):
 	if i > 3:
 		return 0
@@ -50,17 +52,18 @@ def wrap(i):
 		return i
 
 def animate_rect(color, can):
+	global thread_kill
 	i = 0
 	x = 0
 	y = 0
 	inc = 2
 	flags = ["right", "down", "left", "up"]
-	while True:
+	while not thread_kill:
 		can.create_rectangle(0, 0, instruction_width, instruction_height, fill="black")
 		## determine how to change rectangle location
 		#print(flags[i])
 		if flags[i] == "right":
-			if x < 50:
+			if x < instruction_width - 50:
 				x += inc
 			else:
 				i += 1
@@ -72,7 +75,7 @@ def animate_rect(color, can):
 				i += 1
 			i = wrap(i)
 		elif flags[i] == "down":
-			if y < 50:
+			if y < instruction_height - 50:
 				y += inc
 			else:
 				i += 1
@@ -93,13 +96,16 @@ def animate_rect(color, can):
 
 		time.sleep(.1)
 
+def stop_threads():
+	global thread_kill
+	thread_kill = True
+
 def motor_settings_popup(settings_D):
 	print(str(settings_D))
-	settings_D["left_right"] += 1
+	#settings_D["left_right"] += 1
 
-	popup = tk.Toplevel()
+	popup = tk.Toplevel(width=200, height=400)
 	popup.title("Motor Settings")
-	popup.geometry("200x400")
 
 def head_settings_popup(settings_D):
 	print(str(settings_D))
@@ -165,7 +171,7 @@ def run_wait():
 ### MAIN WINDOW ###
 win = tk.Tk()
 win.title("GUI Control")
-win.geometry("1080x720")
+win.geometry("790x450")
 
 ### FRAMES ###
 # Make a frame to control width/height
@@ -209,7 +215,7 @@ quit_img = tk.PhotoImage(file="images/quit_button.png")
 play_button = tk.Button(play_pause_frame, play_pause_options, image=play_img)
 play_button.pack(side="left")
 
-pause_button = tk.Button(play_pause_frame, play_pause_options, image=pause_img)
+pause_button = tk.Button(play_pause_frame, play_pause_options, image=pause_img, command=stop_threads)
 pause_button.pack(side="left")
 
 quit_button = tk.Button(play_pause_frame, play_pause_options, image=quit_img, command=exit)
