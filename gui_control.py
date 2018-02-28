@@ -1,6 +1,7 @@
 import tkinter as tk
 from Instruction import *
 from key_controller import KeyController
+import threading
 
 button_height 	= 2
 button_width  	= 17
@@ -9,8 +10,8 @@ button_pady		= 5
 
 can_L = []
 
-instruction_height 	= 100
-instruction_width 	= 100
+instruction_height 	= 90
+instruction_width 	= 90
 
 play_pause_width	= 100
 play_pause_height	= 75
@@ -32,6 +33,7 @@ NO_MOVE					=  0
 ic = 0
 cmd_L = []
 
+
 # Base settings dictionaries
 motor_D = {"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN}
 
@@ -41,9 +43,69 @@ body_D = {"type":"body", "left_right":NO_MOVE, "left_right_target":MIN}
 
 wait_D = {"type":"wait", "delay":MIN_WAIT}
 
+thread_kill = False
+
+def wrap(i):
+	if i > 3:
+		return 0
+	else:
+		return i
+
+def animate_rect(color, can):
+	global thread_kill
+	i = 0
+	x = 0
+	y = 0
+	inc = 2
+	flags = ["right", "down", "left", "up"]
+	while not thread_kill:
+		can.create_rectangle(0, 0, instruction_width, instruction_height, fill="black")
+		## determine how to change rectangle location
+		#print(flags[i])
+		if flags[i] == "right":
+			if x < instruction_width - 50:
+				x += inc
+			else:
+				i += 1
+			i = wrap(i)
+		elif flags[i] == "left":
+			if x > 0:
+				x -= inc
+			else:
+				i += 1
+			i = wrap(i)
+		elif flags[i] == "down":
+			if y < instruction_height - 50:
+				y += inc
+			else:
+				i += 1
+			i = wrap(i)
+		elif flags[i] == "up":
+			if y > 0:
+				y -= inc
+			else:
+				i += 1
+			i = wrap(i)
+
+		else:
+			i = 0
+			x = 0
+			y = 0
+
+		can.create_rectangle(x, y, x+50, y+50, fill=color)
+
+		time.sleep(.1)
+
+def stop_threads():
+	global thread_kill
+	thread_kill = True
+
 def motor_settings_popup(settings_D):
 	print(str(settings_D))
-	settings_D["left_right"] += 1
+	#settings_D["left_right"] += 1
+
+	popup = tk.Toplevel(width=200, height=400)
+	popup.title("Motor Settings")
 
 def head_settings_popup(settings_D):
 	print(str(settings_D))
@@ -59,7 +121,10 @@ def wait_settings_popup(settings_D):
 
 def run_motor():
 	global ic, cmd_L
-	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
+	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
+	th = threading.Thread(target=lambda color="blue", can=can_L[ic]: animate_rect(color, can))
+	th.start()
+
 
 	cmd_L.append({"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN})
 
@@ -69,7 +134,9 @@ def run_motor():
 
 def run_head():
 	global ic, cmd_L
-	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="green")
+	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="green")
+	th = threading.Thread(target=lambda color="green", can=can_L[ic]: animate_rect(color, can))
+	th.start()
 
 	cmd_L.append({"type":"head", "up_down":NO_MOVE, "left_right":NO_MOVE, "up_down_target":MIN, "left_right_target":MIN})
 
@@ -79,7 +146,9 @@ def run_head():
 
 def run_body():
 	global ic, cmd_L
-	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="red")
+	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="red")
+	th = threading.Thread(target=lambda color="red", can=can_L[ic]: animate_rect(color, can))
+	th.start()
 
 	cmd_L.append({"type":"body", "left_right":NO_MOVE, "left_right_target":MIN})
 
@@ -89,7 +158,9 @@ def run_body():
 
 def run_wait():
 	global ic, cmd_L
-	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="white")
+	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="white")
+	th = threading.Thread(target=lambda color="white", can=can_L[ic]: animate_rect(color, can))
+	th.start()
 
 	cmd_L.append({"type":"wait", "delay":MIN_WAIT})
 
@@ -100,7 +171,7 @@ def run_wait():
 ### MAIN WINDOW ###
 win = tk.Tk()
 win.title("GUI Control")
-win.geometry("1080x720")
+win.geometry("790x450")
 
 ### FRAMES ###
 # Make a frame to control width/height
@@ -144,7 +215,7 @@ quit_img = tk.PhotoImage(file="images/quit_button.png")
 play_button = tk.Button(play_pause_frame, play_pause_options, image=play_img)
 play_button.pack(side="left")
 
-pause_button = tk.Button(play_pause_frame, play_pause_options, image=pause_img)
+pause_button = tk.Button(play_pause_frame, play_pause_options, image=pause_img, command=stop_threads)
 pause_button.pack(side="left")
 
 quit_button = tk.Button(play_pause_frame, play_pause_options, image=quit_img, command=exit)
