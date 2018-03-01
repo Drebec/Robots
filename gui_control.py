@@ -35,7 +35,7 @@ cmd_L = []
 
 
 # Base settings dictionaries
-motor_D = {"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN}
+motor_D = {"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN, "delay":NO_MOVE}
 
 head_D = {"type":"head", "up_down":NO_MOVE, "left_right":NO_MOVE, "up_down_target":MIN, "left_right_target":MIN}
 
@@ -100,24 +100,88 @@ def stop_threads():
 	global thread_kill
 	thread_kill = True
 
+
 def motor_settings_popup(settings_D):
 	print(str(settings_D))
 	#settings_D["left_right"] += 1
 
-	popup = tk.Toplevel(width=200, height=400)
+	popup = tk.Toplevel(width=300, height=400)
 	popup.title("Motor Settings")
+	forward_back = tk.Scale(popup, label="Backward or Forward?", from_=-1, to=1, orient="horizontal")
+	forward_back_target = tk.Scale(popup, label="Speed", from_=0, to=3000, orient="horizontal")
+	left_right = tk.Scale(popup, label="Left or Right?", from_=-1, to=1, orient="horizontal")
+	left_right_target = tk.Scale(popup, label="Speed", from_=0, to=3000, orient="horizontal")
+	delay = tk.Scale(popup, label="Time", from_=0, to=10, orient="horizontal")
+	forward_back.pack()
+	forward_back_target.pack()
+	left_right.pack()
+	left_right_target.pack()
+	delay.pack()
+
+
+	button = tk.Button(popup, text="Save Settings", command=lambda popup=popup, settings_D=settings_D, forward_back=forward_back, forward_back_target=forward_back_target, left_right=left_right, left_right_target=left_right_target, delay=delay: set_motor_settings(popup, settings_D, forward_back, forward_back_target, left_right, left_right_target, delay))
+	button.pack()
+
+def set_motor_settings(popup, settings_D, forward_back, forward_back_target, left_right, left_right_target, delay):
+	settings_D["forward_back"] = int(forward_back.get())
+	settings_D["forward_back_target"] = int(forward_back_target.get())
+	settings_D["left_right"] = int(left_right.get())
+	settings_D["left_right_target"] = int(left_right_target.get())
+	settings_D["delay"] = int(delay.get())
+	popup.destroy()
+
 
 def head_settings_popup(settings_D):
-	print(str(settings_D))
-	settings_D["left_right"] += 1
+	popup = tk.Toplevel(width=300, height=400)
+	popup.title("Head Settings")
+	up_down = tk.Scale(popup, label="Up or Down?", from_=-1, to=1, orient="horizontal")
+	up_down_target = tk.Scale(popup, label="Target", from_=0, to=3000, orient="horizontal")
+	left_right = tk.Scale(popup, label="Left or Right?", from_=-1, to=1, orient="horizontal")
+	left_right_target = tk.Scale(popup, label="Target", from_=0, to=3000, orient="horizontal")
+	up_down.pack()
+	up_down_target.pack()
+	left_right.pack()
+	left_right_target.pack()
+
+
+	button = tk.Button(popup, text="Save Settings", command=lambda popup=popup, settings_D=settings_D, up_down=up_down, up_down_target=up_down_target, left_right=left_right, left_right_target=left_right_target: set_head_settings(popup, settings_D, up_down, up_down_target, left_right, left_right_target))
+	button.pack()
+
+def set_head_settings(popup, settings_D, up_down, up_down_target, left_right, left_right_target):
+	settings_D["up_down"] = int(up_down.get())
+	settings_D["up_down_target"] = int(up_down_target.get())
+	settings_D["left_right"] = int(left_right.get())
+	settings_D["left_right_target"] = int(left_right_target.get())
+	popup.destroy()
 
 def body_settings_popup(settings_D):
-	print(str(settings_D))
-	settings_D["left_right"] += 1
+	popup = tk.Toplevel(width=300, height=400)
+	popup.title("Body Settings")
+	left_right = tk.Scale(popup, label="Left or Right?", from_=-1, to=1, orient="horizontal")
+	left_right_target = tk.Scale(popup, label="Target", from_=0, to=3000, orient="horizontal")
+	left_right.pack()
+	left_right_target.pack()
+
+	button = tk.Button(popup, text="Save Settings", command=lambda popup=popup, settings_D=settings_D, left_right=left_right, left_right_target=left_right_target: set_body_settings(popup, settings_D, left_right, left_right_target))
+	button.pack()
+
+def set_body_settings(popup, settings_D, left_right, left_right_target):
+	settings_D["left_right"] = int(left_right.get())
+	settings_D["left_right_target"] = int(left_right_target.get())
+	popup.destroy()
 
 def wait_settings_popup(settings_D):
-	print(str(settings_D))
-	settings_D["delay"] += 1
+	popup = tk.Toplevel(width=300, height=400)
+	popup.title("Wait Settings")
+	delay = tk.Scale(popup, label="Time", from_=0, to=10, orient="horizontal")
+	delay.pack()
+
+	button = tk.Button(popup, text="Save Settings", command=lambda popup=popup, settings_D=settings_D, delay=delay: set_wait_settings(popup, settings_D, delay))
+	button.pack()
+
+def set_wait_settings(popup, settings_D, delay):
+	settings_D["delay"] = int(delay.get())
+	popup.destroy()
 
 def run_motor():
 	global ic, cmd_L
@@ -168,6 +232,23 @@ def run_wait():
 
 	ic += 1
 
+def run_program():
+	for i in cmd_L:
+		print(str(i))
+		command_type = list(i.values())[0]
+		temp = dict(i)
+		temp.pop("type")
+		command_args = temp
+		if command_type == "motor":
+			inst = Motor(**command_args)
+		elif command_type == "body":
+			inst = Body(**command_args)
+		elif command_type == "head":
+			inst = Head(**command_args)
+		elif command_type == "wait":
+			inst = Wait(**command_args)
+		inst.execute()
+
 ### MAIN WINDOW ###
 win = tk.Tk()
 win.title("GUI Control")
@@ -212,7 +293,7 @@ play_img = tk.PhotoImage(file="images/play_button.png")
 pause_img = tk.PhotoImage(file="images/pause_button.png")
 quit_img = tk.PhotoImage(file="images/quit_button.png")
 
-play_button = tk.Button(play_pause_frame, play_pause_options, image=play_img)
+play_button = tk.Button(play_pause_frame, play_pause_options, image=play_img, command=run_program)
 play_button.pack(side="left")
 
 pause_button = tk.Button(play_pause_frame, play_pause_options, image=pause_img, command=stop_threads)
