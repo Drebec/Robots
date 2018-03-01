@@ -31,7 +31,10 @@ class Motor:
         #c0.setTarget(FORWARD_BACK, 6000 + (self.forward_back * self.forward_back_target))
         #c0.setTarget(LEFT_RIGHT, 6000 + (self.left_right * self.left_right_target))
         print("Executing Motor Movement")
-        #time.sleep(delay)
+        time.sleep(self.delay)
+
+        #c0.setTarget(FORWARD_BACK, 6000)
+        #c0.setTarget(LEFT_RIGHT, 6000)
 
 class Body:
     def __init__(self, left_right=0, left_right_target=0):
@@ -82,5 +85,5 @@ class Wait:
     #     self.delay = delay
 
     def execute(self):
-        # time.sleep(delay)
         print("Executing Wait" + str(self.delay))
+        time.sleep(self.delay)
