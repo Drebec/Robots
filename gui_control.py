@@ -1,6 +1,6 @@
 import tkinter as tk
 from Instruction import *
-from key_controller import KeyController
+#from key_controller import KeyController
 import threading
 
 button_height 	= 2
@@ -243,17 +243,19 @@ def run_wait():
 def run_program():
 	for i in cmd_L:
 		print(str(i))
+		
 		command_type = list(i.values())[0]
 		temp = dict(i)
 		temp.pop("type")
 		command_args = temp
-		if command_type == "motor":
+		print(command_type)
+		if i["type"] == "motor":
 			inst = Motor(**command_args)
-		elif command_type == "body":
+		elif i["type"] == "body":
 			inst = Body(**command_args)
-		elif command_type == "head":
+		elif i["type"] == "head":
 			inst = Head(**command_args)
-		elif command_type == "wait":
+		elif i["type"] == "wait":
 			inst = Wait(**command_args)
 
 		#start_thread()
