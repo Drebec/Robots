@@ -2,6 +2,7 @@ import tkinter as tk
 from Instruction import *
 #from key_controller import KeyController
 import threading
+import sys
 
 button_height 	= 2
 button_width  	= 17
@@ -19,6 +20,7 @@ play_pause_height	= 75
 button_options 		= {"width":button_width, "height":button_height, "padx":button_padx, "pady":button_pady}
 instruction_options = {"width":instruction_width, "height":instruction_height, "bg":"black"}
 play_pause_options 	= {"width":play_pause_width, "height":play_pause_height}
+scale_options		= {"width":20, "length":200, "orient":"horizontal"}
 
 # Servo positions
 MIN, MIN_WAIT 	= 0,0
@@ -46,6 +48,8 @@ body_D = {"type":"body", "left_right":NO_MOVE, "left_right_target":MIN}
 wait_D = {"type":"wait", "delay":MIN_WAIT}
 
 thread_kill = False
+anican = 0
+
 
 def wrap(i):
 	if i > 3:
@@ -111,11 +115,11 @@ def motor_settings_popup(settings_D):
 
 	popup = tk.Toplevel(width=300, height=400)
 	popup.title("Motor Settings")
-	forward_back = tk.Scale(popup, label="Backward or Forward?", from_=-1, to=1, orient="horizontal", length=150)
-	forward_back_target = tk.Scale(popup, label="Speed", from_=0, to=3000, orient="horizontal", length=150)
-	left_right = tk.Scale(popup, label="Left or Right?", from_=-1, to=1, orient="horizontal", length=150)
-	left_right_target = tk.Scale(popup, label="Speed", from_=0, to=3000, orient="horizontal", length=150)
-	delay = tk.Scale(popup, label="Time", from_=0, to=10, orient="horizontal", length=150)
+	forward_back = tk.Scale(popup, scale_options, label="Backward or Forward?", from_=-1, to=1)
+	forward_back_target = tk.Scale(popup, scale_options, label="Speed", from_=0, to=3000)
+	left_right = tk.Scale(popup, scale_options, label="Left or Right?", from_=-1, to=1)
+	left_right_target = tk.Scale(popup, scale_options, label="Speed", from_=0, to=3000)
+	delay = tk.Scale(popup, scale_options, label="Time", from_=0, to=10)
 	forward_back.pack()
 	forward_back_target.pack()
 	left_right.pack()
@@ -138,10 +142,10 @@ def set_motor_settings(popup, settings_D, forward_back, forward_back_target, lef
 def head_settings_popup(settings_D):
 	popup = tk.Toplevel(width=300, height=400)
 	popup.title("Head Settings")
-	up_down = tk.Scale(popup, label="Up or Down?", from_=-1, to=1, orient="horizontal", length=150)
-	up_down_target = tk.Scale(popup, label="Target", from_=0, to=3000, orient="horizontal", length=150)
-	left_right = tk.Scale(popup, label="Left or Right?", from_=-1, to=1, orient="horizontal", length=150)
-	left_right_target = tk.Scale(popup, label="Target", from_=0, to=3000, orient="horizontal", length=150)
+	up_down = tk.Scale(popup, scale_options, label="Up or Down?", from_=-1, to=1)
+	up_down_target = tk.Scale(popup, scale_options, label="Target", from_=0, to=3000)
+	left_right = tk.Scale(popup, scale_options, label="Left or Right?", from_=-1, to=1)
+	left_right_target = tk.Scale(popup, scale_options, label="Target", from_=0, to=3000)
 	up_down.pack()
 	up_down_target.pack()
 	left_right.pack()
@@ -161,8 +165,8 @@ def set_head_settings(popup, settings_D, up_down, up_down_target, left_right, le
 def body_settings_popup(settings_D):
 	popup = tk.Toplevel(width=300, height=400)
 	popup.title("Body Settings")
-	left_right = tk.Scale(popup, label="Left or Right?", from_=-1, to=1, orient="horizontal", length=150)
-	left_right_target = tk.Scale(popup, label="Target", from_=0, to=3000, orient="horizontal", length=150)
+	left_right = tk.Scale(popup, scale_options, label="Left or Right?", from_=-1, to=1)
+	left_right_target = tk.Scale(popup, scale_options, label="Target", from_=0, to=3000)
 	left_right.pack()
 	left_right_target.pack()
 
@@ -177,7 +181,7 @@ def set_body_settings(popup, settings_D, left_right, left_right_target):
 def wait_settings_popup(settings_D):
 	popup = tk.Toplevel(width=300, height=400)
 	popup.title("Wait Settings")
-	delay = tk.Scale(popup, label="Time", from_=0, to=10, orient="horizontal", length=150)
+	delay = tk.Scale(popup, scale_options, label="Time", from_=0, to=10)
 	delay.pack()
 
 	button = tk.Button(popup, text="Save Settings", command=lambda popup=popup, settings_D=settings_D, delay=delay: set_wait_settings(popup, settings_D, delay))
@@ -188,10 +192,12 @@ def set_wait_settings(popup, settings_D, delay):
 	popup.destroy()
 
 def run_motor():
-	global ic, cmd_L, th_L
-	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
-	th = threading.Thread(target=lambda color="blue", can=can_L[ic]: animate_rect(color, can))
-	th_L.append(th)
+	global ic, cmd_L, th_L, motor_img
+	can_L[ic].create_image(instruction_width/2,instruction_height/2, image=motor_img)
+
+	#can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
+	# th = threading.Thread(target=lambda color="blue", can=can_L[ic]: animate_rect(color, can))
+	# th_L.append(th)
 	#th.start()
 
 
@@ -202,10 +208,12 @@ def run_motor():
 	ic += 1
 
 def run_head():
-	global ic, cmd_L, th_L
-	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="green")
-	th = threading.Thread(target=lambda color="green", can=can_L[ic]: animate_rect(color, can))
-	th_L.append(th)
+	global ic, cmd_L, th_L, head_img
+	can_L[ic].create_image(instruction_width/2,instruction_height/2, image=head_img)
+
+	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="green")
+	# th = threading.Thread(target=lambda color="green", can=can_L[ic]: animate_rect(color, can))
+	# th_L.append(th)
 	#th.start()
 
 	cmd_L.append({"type":"head", "up_down":NO_MOVE, "left_right":NO_MOVE, "up_down_target":MIN, "left_right_target":MIN})
@@ -215,10 +223,12 @@ def run_head():
 	ic += 1
 
 def run_body():
-	global ic, cmd_L, th_L
-	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="red")
-	th = threading.Thread(target=lambda color="red", can=can_L[ic]: animate_rect(color, can))
-	th_L.append(th)
+	global ic, cmd_L, th_L, bod_img
+	can_L[ic].create_image(instruction_width/2,instruction_height/2, image=bod_img)
+
+	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="red")
+	# th = threading.Thread(target=lambda color="red", can=can_L[ic]: animate_rect(color, can))
+	# th_L.append(th)
 	# th.start()
 
 	cmd_L.append({"type":"body", "left_right":NO_MOVE, "left_right_target":MIN})
@@ -228,10 +238,12 @@ def run_body():
 	ic += 1
 
 def run_wait():
-	global ic, cmd_L, th_L
-	can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="white")
-	th = threading.Thread(target=lambda color="white", can=can_L[ic]: animate_rect(color, can))
-	th_L.append(th)
+	global ic, cmd_L, th_L, wait_img
+	can_L[ic].create_image(instruction_width/2,instruction_height/2, image=wait_img)
+
+	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="white")
+	# th = threading.Thread(target=lambda color="white", can=can_L[ic]: animate_rect(color, can))
+	# th_L.append(th)
 	#th.start()
 
 	cmd_L.append({"type":"wait", "delay":MIN_WAIT})
@@ -240,10 +252,67 @@ def run_wait():
 
 	ic += 1
 
+def delete_all():
+	global cmd_L, can_L, th_L, ic
+	# clear all lists
+	cmd_L = []
+	th_L  = []
+	ic    = 0
+
+	for i in range(8):
+		can_L[i].destroy()
+
+	can_L = []
+
+	for i in range(8):
+		instruction = tk.Canvas(ins_holder_frame, instruction_options)
+		instruction.pack(side="left")
+		can_L.append(instruction)
+
+def delete_index(index):
+	global can_L, cmd_L, th_L, ic
+	can_L.delete(index)
+
+def program_helper():
+	global anican, prog_thread, thread_kill, bg_img
+	# run animation
+	# run program
+
+	animation_win = tk.Toplevel()
+	animation_win.overrideredirect(1)
+	animation_win.title("Animation")
+	animation_win.geometry("790x450")
+
+	# bg_can = tk.Canvas(animation_win)
+	# bg_can.create_image(0, 0, image=bg_img)
+
+	anican = tk.Label(animation_win)
+	anican.pack()
+
+	prog_thread = threading.Thread(target=run_program)
+	prog_thread.start()
+
+	thread_kill = False
+	update(0, animation_win)
+
+def update(ind, window):
+	global anican, anim
+	frame = anim[ind]
+	ind += 1
+	anican.config(image=frame)
+	if ind == 2:
+		ind = 0
+	if not thread_kill:
+		anican.after(100, update, ind, window)
+	else:
+		window.destroy()
+
 def run_program():
+	global thread_kill
+	thread_kill = False
 	for i in cmd_L:
 		print(str(i))
-		
+
 		command_type = list(i.values())[0]
 		temp = dict(i)
 		temp.pop("type")
@@ -265,6 +334,9 @@ def run_program():
 		#th.start()
 		inst.execute()
 		#stop_thread()
+	print("finished exectution")
+	thread_kill = True
+	return 0
 
 ### MAIN WINDOW ###
 win = tk.Tk()
@@ -306,18 +378,28 @@ for i in range(8):
 
 ### START/STOP BUTTONS ###
 # Create image variables for buttons
-play_img = tk.PhotoImage(file="images/play_button.png")
-pause_img = tk.PhotoImage(file="images/pause_button.png")
-quit_img = tk.PhotoImage(file="images/quit_button.png")
+play_img 	= tk.PhotoImage(file="images/play_button.png")
+clear_img 	= tk.PhotoImage(file="images/clear_button.png")
+quit_img 	= tk.PhotoImage(file="images/quit_button.png")
 
-play_button = tk.Button(play_pause_frame, play_pause_options, image=play_img, command=run_program)
+motor_img 	= tk.PhotoImage(file="images/Motor.png")
+head_img	= tk.PhotoImage(file="images/Head.png")
+bod_img		= tk.PhotoImage(file="images/Bod.png")
+wait_img	= tk.PhotoImage(file="images/Wait.png")
+
+play_button = tk.Button(play_pause_frame, play_pause_options, image=play_img, command=program_helper)
 play_button.pack(side="left")
 
-pause_button = tk.Button(play_pause_frame, play_pause_options, image=pause_img, command=stop_thread)
+pause_button = tk.Button(play_pause_frame, play_pause_options, image=clear_img, command=delete_all)
 pause_button.pack(side="left")
 
 quit_button = tk.Button(play_pause_frame, play_pause_options, image=quit_img, command=exit)
 quit_button.pack(side="left")
+
+anim = [tk.PhotoImage(file="images/ash_running.gif", format='gif -index %i' %(i)) for i in range(2)]
+anim[0] = anim[0].zoom(2)
+anim[1] = anim[1].zoom(2)
+bg_img = tk.PhotoImage(file="images/pallet-town-rby.png")
 
 ### SETTINGS MENUS ###
 # motor_settings = tk.Menu(win, tearoff=0)
