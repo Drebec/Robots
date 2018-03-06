@@ -12,7 +12,7 @@ def update(ind):
 	can.config(image=frame)
 	if ind == 2:
 		ind = 0
-	can.after(500, update, ind)
+	can.after(100, update, ind)
 
 can = tk.Label()
 can.pack()
