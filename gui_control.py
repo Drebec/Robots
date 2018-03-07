@@ -11,8 +11,6 @@ button_width  	= 17
 button_padx	  	= 5
 button_pady		= 5
 
-can_L = []
-
 instruction_height 	= 90
 instruction_width 	= 90
 
@@ -38,6 +36,7 @@ NO_MOVE					=  0
 ic 		= 0
 cmd_L 	= []
 th_L 	= []
+can_L = []
 
 
 # Base settings dictionaries
@@ -52,67 +51,7 @@ wait_D = {"type":"wait", "delay":MIN_WAIT}
 thread_kill = False
 anican = 0
 
-
-def wrap(i):
-	if i > 3:
-		return 0
-	else:
-		return i
-
-def animate_rect(color, can):
-	global thread_kill
-	i = 0
-	x = 0
-	y = 0
-	inc = 2
-	flags = ["right", "down", "left", "up"]
-	while not thread_kill:
-		can.create_rectangle(0, 0, instruction_width, instruction_height, fill="black")
-		## determine how to change rectangle location
-		#print(flags[i])
-		if flags[i] == "right":
-			if x < instruction_width - 50:
-				x += inc
-			else:
-				i += 1
-			i = wrap(i)
-		elif flags[i] == "left":
-			if x > 0:
-				x -= inc
-			else:
-				i += 1
-			i = wrap(i)
-		elif flags[i] == "down":
-			if y < instruction_height - 50:
-				y += inc
-			else:
-				i += 1
-			i = wrap(i)
-		elif flags[i] == "up":
-			if y > 0:
-				y -= inc
-			else:
-				i += 1
-			i = wrap(i)
-
-		else:
-			i = 0
-			x = 0
-			y = 0
-
-		can.create_rectangle(x, y, x+50, y+50, fill=color)
-
-		time.sleep(.1)
-
-def stop_thread():
-	global thread_kill
-	thread_kill = True
-
-def start_thread():
-	global thread_kill
-	thread_kill = False
-
-
+### SETTINGS WINDOWS ###
 def motor_settings_popup(settings_D):
 
 	popup = tk.Toplevel(width=300, height=400)
@@ -193,15 +132,10 @@ def set_wait_settings(popup, settings_D, delay):
 	settings_D["delay"] = int(delay.get())
 	popup.destroy()
 
+### BUTTON CALLBACKS ###
 def run_motor():
 	global ic, cmd_L, th_L, motor_img
 	can_L[ic].create_image(instruction_width/2,instruction_height/2, image=motor_img)
-
-	#can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="blue")
-	# th = threading.Thread(target=lambda color="blue", can=can_L[ic]: animate_rect(color, can))
-	# th_L.append(th)
-	#th.start()
-
 
 	cmd_L.append({"type":"motor", "forward_back":NO_MOVE, "left_right":NO_MOVE, "forward_back_target":MIN, "left_right_target":MIN})
 
@@ -213,11 +147,6 @@ def run_head():
 	global ic, cmd_L, th_L, head_img
 	can_L[ic].create_image(instruction_width/2,instruction_height/2, image=head_img)
 
-	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="green")
-	# th = threading.Thread(target=lambda color="green", can=can_L[ic]: animate_rect(color, can))
-	# th_L.append(th)
-	#th.start()
-
 	cmd_L.append({"type":"head", "up_down":NO_MOVE, "left_right":NO_MOVE, "up_down_target":MIN, "left_right_target":MIN})
 
 	can_L[ic].bind('<Button-1>', lambda event, settings_D=cmd_L[ic]: head_settings_popup(settings_D))
@@ -228,11 +157,6 @@ def run_body():
 	global ic, cmd_L, th_L, bod_img
 	can_L[ic].create_image(instruction_width/2,instruction_height/2, image=bod_img)
 
-	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="red")
-	# th = threading.Thread(target=lambda color="red", can=can_L[ic]: animate_rect(color, can))
-	# th_L.append(th)
-	# th.start()
-
 	cmd_L.append({"type":"body", "left_right":NO_MOVE, "left_right_target":MIN})
 
 	can_L[ic].bind('<Button-1>', lambda event, settings_D=cmd_L[ic]: body_settings_popup(settings_D))
@@ -242,11 +166,6 @@ def run_body():
 def run_wait():
 	global ic, cmd_L, th_L, wait_img
 	can_L[ic].create_image(instruction_width/2,instruction_height/2, image=wait_img)
-
-	# can_L[ic].create_rectangle(.2*instruction_width, .2*instruction_height, .8*instruction_width, .8*instruction_height, fill="white")
-	# th = threading.Thread(target=lambda color="white", can=can_L[ic]: animate_rect(color, can))
-	# th_L.append(th)
-	#th.start()
 
 	cmd_L.append({"type":"wait", "delay":MIN_WAIT})
 
@@ -284,9 +203,6 @@ def program_helper():
 	animation_win.overrideredirect(1)
 	animation_win.title("Animation")
 	animation_win.geometry("790x450")
-
-	# bg_can = tk.Canvas(animation_win)
-	# bg_can.create_image(0, 0, image=bg_img)
 
 	anican = tk.Label(animation_win)
 	anican.pack()
@@ -329,13 +245,8 @@ def run_program():
 		elif i["type"] == "wait":
 			inst = Wait(**command_args)
 
-		#start_thread()
-		#print(str(th_L[cmd_L.index(i)]))
-		#th_L[cmd_L.index(i)].start()
-		#th = threading.Thread(target=lambda color="blue", can=can_L[cmd_L.index(i)]: animate_rect(color, can))
-		#th.start()
 		inst.execute()
-		#stop_thread()
+
 	print("finished exectution")
 	thread_kill = True
 	return 0
@@ -402,21 +313,5 @@ anim = [tk.PhotoImage(file="images/ash_running.gif", format='gif -index %i' %(i)
 anim[0] = anim[0].zoom(2)
 anim[1] = anim[1].zoom(2)
 bg_img = tk.PhotoImage(file="images/pallet-town-rby.png")
-
-### SETTINGS MENUS ###
-# motor_settings = tk.Menu(win, tearoff=0)
-# motor_settings.add("radiobutton", label="Slow")
-# motor_settings.add("radiobutton", label="Medium")
-# motor_settings.add("radiobutton", label="Fast")
-
-# # Make a canvas
-# can = tk.Canvas(win_frame, width=1080, height=720, bd=2, bg="green")
-# can.pack()
-#
-# can.create_line(0, 0, 1080, 520, fill="blue")
-# can.create_rectangle(1080*.1, 520*.1, 1080 * .8, 520 * .8, outline="red")
-
-# Instantiate keyboard controller
-#kc = KeyController()
 
 win.mainloop()
