@@ -4,6 +4,8 @@ from Instruction import *
 import threading
 import sys
 
+# Set up constants for button dimensions
+
 button_height 	= 2
 button_width  	= 17
 button_padx	  	= 5
